@@ -1,0 +1,32 @@
+<h2>Quản lý Đơn hàng (Admin)</h2>
+<div id="notice" style="color:red"></div>
+<div id="orders"></div>
+
+<script src="auth.js"></script>
+<script src="products.js"></script>
+<script>
+const notice = document.getElementById('notice');
+const ordersDiv = document.getElementById('orders');
+
+if (!getToken() || getRole() !== 'Admin'){
+  notice.textContent = 'Bạn phải đăng nhập với vai trò Admin để xem trang này.';
+} else {
+  loadAllOrders();
+}
+
+async function loadAllOrders(){
+  try{
+    const orders = await getAllOrders();
+    if (!orders.length) { ordersDiv.innerHTML = '<i>Không có đơn hàng nào</i>'; return; }
+    ordersDiv.innerHTML = '';
+    orders.forEach(o=>{
+      const el = document.createElement('div');
+      el.innerHTML = `<b>Đơn #${o.id}</b> - Khách: ${o.customerName} - ${new Date(o.orderDate).toLocaleString()} - ${o.status} - Tổng: ${o.totalAmount}`;
+      const list = document.createElement('ul');
+      o.items.forEach(it=>{ const li = document.createElement('li'); li.textContent = `${it.productName} x ${it.quantity} @ ${it.unitPrice}`; list.appendChild(li); });
+      el.appendChild(list);
+      ordersDiv.appendChild(el);
+    });
+  }catch(err){ notice.textContent = err.message; }
+}
+</script>

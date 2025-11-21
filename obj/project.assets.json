@@ -3035,11 +3035,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Administrator\\Downloads\\btapbackend\\btapbackend.csproj",
+      "projectUniqueName": "C:\\Users\\Administrator\\Downloads\\cuoikyBackend\\btapbackend.csproj",
       "projectName": "btapbackend",
-      "projectPath": "C:\\Users\\Administrator\\Downloads\\btapbackend\\btapbackend.csproj",
+      "projectPath": "C:\\Users\\Administrator\\Downloads\\cuoikyBackend\\btapbackend.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Administrator\\Downloads\\btapbackend\\obj\\",
+      "outputPath": "C:\\Users\\Administrator\\Downloads\\cuoikyBackend\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"

@@ -1,0 +1,74 @@
+<h2>Đăng nhập</h2>
+<div id="message" style="color:red"></div>
+<div id="authArea">
+  <form id="loginForm">
+    <label>Email</label><br />
+    <input type="email" id="email" required /><br />
+    <label>Mật khẩu</label><br />
+    <input type="password" id="password" required /><br />
+    <button type="submit">Đăng nhập</button>
+    <button type="button" id="logoutBtn" style="display:none">Đăng xuất</button>
+  </form>
+  <div id="userNav" style="display:none">
+    <div id="greeting"></div>
+    <a id="linkProducts" href="#">Sản phẩm</a> |
+    <a id="linkCart" href="#">Giỏ hàng</a> |
+    <a id="linkOrders" href="#">Đơn hàng của tôi</a> |
+    <a id="linkAdminOrders" href="#" style="display:none">Quản lý đơn (Admin)</a>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>
+const apiBase = location.protocol + '//' + location.hostname + ':7234';
+
+const msg = document.getElementById('message');
+const logoutBtn = document.getElementById('logoutBtn');
+const userNav = document.getElementById('userNav');
+const greeting = document.getElementById('greeting');
+const linkProducts = document.getElementById('linkProducts');
+const linkCart = document.getElementById('linkCart');
+const linkOrders = document.getElementById('linkOrders');
+const linkAdminOrders = document.getElementById('linkAdminOrders');
+
+function showError(text){ msg.textContent = text; }
+
+if (getToken()) {
+  logoutBtn.style.display = 'inline-block';
+  const u = getUser();
+  greeting.textContent = `Xin chào, ${u?.name || u?.email}`;
+  userNav.style.display = 'block';
+  document.getElementById('loginForm').style.display = 'none';
+  // set links according to role
+  linkProducts.href = (getRole() === 'Admin') ? 'admin-products.html' : 'user-cart.html';
+  linkCart.href = 'user-cart.html';
+  linkOrders.href = 'my-orders.html';
+  if (getRole() === 'Admin') linkAdminOrders.style.display = 'inline';
+  linkAdminOrders.href = 'admin-orders.html';
+}
+
+logoutBtn.onclick = () => {
+  logout();
+  window.location.reload();
+}
+
+document.getElementById('loginForm').onsubmit = async (e) => {
+  e.preventDefault();
+  msg.textContent = '';
+  try{
+    const res = await fetch(apiBase + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.value, password: password.value })
+    });
+    const data = await res.json();
+    if (!res.ok) { showError(data || 'Đăng nhập thất bại'); return; }
+
+    // Response: { token, user: { id, name, email, role } }
+    setAuth(data.token, data.user);
+
+    if (data.user?.role === 'Admin') window.location = 'admin-products.html';
+    else window.location = 'user-cart.html';
+  }catch(err){ showError('Lỗi kết nối: ' + err.message); }
+}
+</script>

@@ -1,0 +1,97 @@
+<h2>Quản lý Sản phẩm (Admin)</h2>
+<div id="notice" style="color:red"></div>
+<div id="app" style="display:none">
+  <h3>Thêm / Cập nhật sản phẩm</h3>
+  <form id="productForm">
+    <input type="hidden" id="prodId" />
+    <label>Tên</label><br/><input id="name" required /><br/>
+    <label>Giá</label><br/><input id="price" type="number" step="0.01" required /><br/>
+    <label>Mô tả</label><br/><input id="description" /><br/>
+    <label>Tồn kho</label><br/><input id="stock" type="number" required /><br/>
+    <button type="submit">Lưu</button>
+    <button type="button" id="cancelEdit">Hủy</button>
+  </form>
+
+  <h3>Danh sách sản phẩm</h3>
+  <table border="1" id="productsTable">
+    <thead><tr><th>ID</th><th>Tên</th><th>Giá</th><th>Tồn</th><th>Hành động</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script src="auth.js"></script>
+<script src="products.js"></script>
+<script>
+const notice = document.getElementById('notice');
+const app = document.getElementById('app');
+
+function showNotice(t){ notice.textContent = t; }
+
+if (!getToken() || getRole() !== 'Admin'){
+  showNotice('Bạn phải đăng nhập với vai trò Admin để truy cập trang này.');
+} else {
+  app.style.display = 'block';
+  loadProducts();
+}
+
+async function loadProducts(){
+  try{
+    const products = await getProducts();
+    const tbody = document.querySelector('#productsTable tbody');
+    tbody.innerHTML = '';
+    products.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${p.id}</td><td>${p.name}</td><td>${p.price}</td><td>${p.stock}</td>
+        <td>
+          <button data-id="${p.id}" class="edit">Sửa</button>
+          <button data-id="${p.id}" class="del">Xóa</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }catch(err){ showNotice(err.message); }
+}
+
+document.getElementById('productsTable').addEventListener('click', async (e) =>{
+  if (e.target.classList.contains('edit')){
+    const id = e.target.dataset.id;
+    const p = await getProduct(id);
+    document.getElementById('prodId').value = p.id;
+    document.getElementById('name').value = p.name;
+    document.getElementById('price').value = p.price;
+    document.getElementById('description').value = p.description;
+    document.getElementById('stock').value = p.stock;
+  } else if (e.target.classList.contains('del')){
+    if (!confirm('Xác nhận xóa?')) return;
+    try{
+      await deleteProduct(e.target.dataset.id);
+      await loadProducts();
+    }catch(err){ showNotice(err.message); }
+  }
+});
+
+document.getElementById('productForm').onsubmit = async (e) =>{
+  e.preventDefault();
+  const id = document.getElementById('prodId').value;
+  const dto = {
+    name: document.getElementById('name').value,
+    price: parseFloat(document.getElementById('price').value),
+    description: document.getElementById('description').value,
+    stock: parseInt(document.getElementById('stock').value, 10)
+  };
+  try{
+    if (id){
+      await updateProduct(id, dto);
+    } else {
+      await createProduct(dto);
+    }
+    document.getElementById('productForm').reset();
+    document.getElementById('prodId').value = '';
+    await loadProducts();
+  }catch(err){ showNotice(err.message); }
+}
+
+document.getElementById('cancelEdit').onclick = ()=>{
+  document.getElementById('productForm').reset();
+  document.getElementById('prodId').value = '';
+}
+</script>
